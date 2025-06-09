@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Kube Jmeter | Blog do Craudio</title>
+<meta name="keywords" content="k8s, jmeter, loadtest, QA, tests">
+<meta name="description" content="Usando jmeter no cluster k8s">
+<meta name="author" content="Claudio Filho">
+<link rel="canonical" href="http://localhost:1313/posts/kube-jmeter/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/kube-jmeter/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Blog do Craudio (Alt + H)">Blog do Craudio</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/archives" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="Tags">
+                    <span>Tags</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/pages/about/" title="About">
+                    <span>Sobre</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Kube Jmeter
+    </h1>
+    <div class="post-description">
+      Usando jmeter no cluster k8s
+    </div>
+    <div class="post-meta"><span title='2024-10-30 00:00:00 +0000 UTC'>October 30, 2024</span>&nbsp;·&nbsp;Claudio Filho
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#jmeter-rodando-no-kubernetes" aria-label="JMeter rodando no kubernetes">JMeter rodando no kubernetes</a><ul>
+                        
+                <li>
+                    <a href="#objetivos-e-pr%c3%a9-requisitos" aria-label="Objetivos e pré requisitos">Objetivos e pré requisitos</a></li>
+                <li>
+                    <a href="#configura%c3%a7%c3%b5es" aria-label="Configurações">Configurações</a></li>
+                <li>
+                    <a href="#criando-manifestos-k8s" aria-label="Criando manifestos k8s">Criando manifestos k8s</a><ul>
+                        
+                <li>
+                    <a href="#job" aria-label="Job:">Job:</a></li>
+                <li>
+                    <a href="#service" aria-label="Service:">Service:</a></li>
+                <li>
+                    <a href="#servicemonitor" aria-label="ServiceMonitor:">ServiceMonitor:</a></li></ul>
+                </li>
+                <li>
+                    <a href="#jmx-files" aria-label="Jmx files">Jmx files</a></li>
+                <li>
+                    <a href="#executando-manualmente-o-job" aria-label="Executando manualmente o job">Executando manualmente o job</a></li>
+                <li>
+                    <a href="#a-pipeline" aria-label="A pipeline">A pipeline</a></li>
+                <li>
+                    <a href="#conclus%c3%a3o" aria-label="Conclusão">Conclusão</a></li>
+                <li>
+                    <a href="#dica-e-proximos-passos" aria-label="Dica e proximos passos">Dica e proximos passos</a></li>
+                <li>
+                    <a href="#referencias" aria-label="Referencias">Referencias</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="jmeter-rodando-no-kubernetes">JMeter rodando no kubernetes<a hidden class="anchor" aria-hidden="true" href="#jmeter-rodando-no-kubernetes">#</a></h1>
+<p>O repositorio referencia para esta publicação, contendo códigos e afins é : <a href="https://github.com/Claudio888/kube-jmeter">https://github.com/Claudio888/kube-jmeter</a></p>
+<p>Trocando uma ideia com meu chapa Vinicius, falando sobre jmeter e ferramentas de teste de carga, lembrei que havia feito para uma empresa uma implementação do jmeter rodando em Openshift, na epoca, precisavamos testar o <a href="https://docs.apigee.com/api-platform/microgateway/3.1.x/overview-edge-microgateway">Edge MicroGateway do apigee</a>, para que as aplicações pudessem se comunicar dentro do cluster e mesmo assim enviar informações para o apigee, sem ter que sair pra internet e voltar, e logo depois o Matheus Fidelis lançou este otimo <a href="https://fidelissauro.dev/load-testing/">artigo</a> o que me fez querer refazer o projetinho, algo parecido ao menos, pois para a empresa foi criado também uma app em python que enviava uma serie de payloads de tamanho diferentes e especificos para os testes.</p>
+<p>Aqui vamos explorar como podemos executar o jmeter, uma famosa ferramenta para testes em software dentro de um cluster k8s (no caso em meu homelab eu uso o KinD).</p>
+<p>Em alguns cenários onde queremos testar uma aplicação com carga, gostariamos de simular as requisições sendo feitas de dentro do cluster, para que um LB, Proxy reverso , api gateway ou afins não interfiram na latencia da resposta e nem acabamos testando as outras ferramentas e não nossa aplicação. Outro cenário valido, é quando temos uma aplicação dentro do cluster que serve apenas internamente.</p>
+<p>Por vezes executarmos o teste de nossa maquina local ou uma outra fonte de dentro da mesma rede que não o cluster, o que pode acarretar em variações, mesmo que pequenas, que interfiram no resultado dos testes e não representam a verdade nas informações daquela aplicação.</p>
+<p>Portanto um ponto muito importante é saber onde voce quer executar este teste, e qual é a melhor forma de executa-lo. Além de conhecer bem as métricas necessárias para validação da aplicação, entender também o momento do teste, seja no pós deploy de uma pipeline para validar fluxos basicos sem carga excesiva, seja em pipelines exclusivas pra teste de stress, spike e breakout, em ambiente controlado ou não, portanto é muito importante o conhecimento sob a aplicação e requisitos que ela deve atender dentro de um cenário de teste de carga.</p>
+<p>Dito isto, nosso projetinho não inclui todas estas validações ou testes em aplicações reais. Ele tem a intenção de ser um objeto de estudos e de como podemos executar o jmeter desta maneira mais moderna, mesmo ele não sendo nascido nesta era, como outros concorrentes como k6 e afins.</p>
+<h2 id="objetivos-e-pré-requisitos">Objetivos e pré requisitos<a hidden class="anchor" aria-hidden="true" href="#objetivos-e-pré-requisitos">#</a></h2>
+<p>Nosso objetivo é ter um teste de carga executado através de uma isntancia de jmeter dentro do cluster, para isto vamos usar como alvo um simples nginx, que no meu cenário em especifico esta deployado no namespace chamado gitlab, e usando o nip.io como auxiliar para criar um ingress legal para localhost, o arquivo base é o <a href="nginx.yaml">nginx.yaml</a> e pode ser executado como pré requisito (para termos um alvo).</p>
+<p>Através destes teste queremos extrair métricas de execução do jmeter, para isto vamos usar o <a href="https://github.com/johrstrom/jmeter-prometheus-plugin">jmeter-prometheus-plugin</a> e enviar o resultado para o prometheus, e posteriormente ter um dashboard no grafana. Portanto para ter isto foi necessaria a instalação do <a href="https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack">kube-prometheus-stack</a>.</p>
+<p>Gostariamos também que nosso teste fosse disparado através de uma pipeline do gitlab, então para este cenário temos também um gitlab instalado dentro do cluster, que ja possui um runner configurado, temos como exemplo esta pagina <a href="https://docs.gitlab.com/charts/development/kind/">Developing for Kubernetes with KinD</a>, o chart utilizado é o <a href="https://gitlab.com/gitlab-org/charts/gitlab">GitLab Chart</a>.</p>
+<p>Além disso, junto a este chart existe o minio, um bucket para salvarmos o resultados dos testes, um arquivo results.jtl e um jmeter.log, que podem ser analisados posteriormente.</p>
+<p>Apesar de termos bastante dependencias e configurações adicionais, não se sinta intimidado caso só deseje observar como o jmeter roda, se desejar instale as ferramentas da forma que preferir, ou utilize outras ferramentas para pipeline, caso deseje utilizar, sinta-se livre para modificar e adaptar o projeto, ou usar apenas uma parte.</p>
+<h2 id="configurações">Configurações<a hidden class="anchor" aria-hidden="true" href="#configurações">#</a></h2>
+<p>Como sabemos o k8s é um orquestrador de containers, então devemos criar um Dockerfile do jmeter que seja habilitado a executar a aplicação. O jmeter usa java para execução e portanto definimos um dockerfile desta maneira.</p>
+<p>A imagem é baseada e modifica o projeto <a href="https://github.com/justb4/docker-jmeter">https://github.com/justb4/docker-jmeter</a>.</p>
+<p>Obs: É plenamente possivel a melhoria na qualidade da imagem do jmeter, sendo criada a partir do apko, por exemplo, podemos fazer estas melhorias posteriormente.</p>
+<pre tabindex="0"><code>FROM alpine:3.12
+
+ARG JMETER_VERSION=&#34;5.6&#34;
+ENV JMETER_HOME=/opt/apache-jmeter-${JMETER_VERSION}
+ENV JMETER_CUSTOM_PLUGINS_FOLDER=/plugins
+ENV	JMETER_BIN=${JMETER_HOME}/bin
+ENV	JMETER_DOWNLOAD_URL=https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz
+
+ARG TZ=&#34;America/Sao_Paulo&#34;
+ENV TZ=${TZ}
+RUN    apk update \
+	&amp;&amp; apk upgrade \
+	&amp;&amp; apk add openssl \
+	&amp;&amp; apk add ca-certificates \
+	&amp;&amp; update-ca-certificates \
+	&amp;&amp; apk add --update openjdk8-jre tzdata curl unzip bash \
+	&amp;&amp; apk add --no-cache nss \
+	&amp;&amp; rm -rf /var/cache/apk/* \
+	&amp;&amp; mkdir -p /tmp/dependencies  \
+	&amp;&amp; curl -L --silent ${JMETER_DOWNLOAD_URL} &gt;  /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz  \
+	&amp;&amp; mkdir -p /opt  \
+	&amp;&amp; tar -xzf /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz -C /opt  \
+	&amp;&amp; rm -rf /tmp/dependencies \
+	&amp;&amp; echo &#34;prometheus.ip=0.0.0.0&#34; &gt;&gt; /opt/apache-jmeter-5.6/bin/jmeter.properties \
+	&amp;&amp; echo &#34;prometheus.delay=120&#34; &gt;&gt; /opt/apache-jmeter-5.6/bin/jmeter.properties 
+
+ENV PATH=$PATH:$JMETER_BIN
+
+COPY entrypoint.sh /
+COPY minioupload.sh ${JMETER_HOME}
+
+COPY /plugins/* ${JMETER_HOME}/lib/ext
+
+WORKDIR	${JMETER_HOME}
+
+ENTRYPOINT [&#34;/entrypoint.sh&#34;]
+</code></pre><p>Temos como imagem base o alpine, e a instalação de todas dependencias e paths necessarios. O ponto que chama atenção são as configurações especificas do plugin de prometheus.</p>
+<p>As duas linhas abaixo incluem uma configuração especifica para o plugin onde a primeira indica que o exporter vai bindar para 0.0.0.0 e se tornar acessivel, e a segunda aplica um delay para encerramento do streaming de dados via /metrics, neste caso esta 120 segundos ele ira continuar expondo as métricas por este tempo para que o scrape seja completo para todas amostras.</p>
+<pre tabindex="0"><code>	&amp;&amp; echo &#34;prometheus.ip=0.0.0.0&#34; &gt;&gt; /opt/apache-jmeter-5.6/bin/jmeter.properties \
+	&amp;&amp; echo &#34;prometheus.delay=120&#34; &gt;&gt; /opt/apache-jmeter-5.6/bin/jmeter.properties 
+</code></pre><p>Apesar de existir uma env criada para custom plugins, foi feita a instalação no caminho tradicional com a linha abaixo, localmente voce também pode instalar neste path.</p>
+<pre tabindex="0"><code>COPY /plugins/* ${JMETER_HOME}/lib/ext
+</code></pre><p>Além de copiar para dentro de si o entrypoint.sh e um minioupload.sh</p>
+<p>Através deste entrypoint é executado o jmeter que se complementa com os parametros passados posteriormente, e também o upload de arquivos para o minio. É possivel alterar o minio para um bucket s3 por exemplo da AWS, ou algum outro local para armazenar os arquivos de resultados, ou caso estes arquivos de resultados não sejam de interesse, podemos remover estar parte.</p>
+<p>O minio depende de uma chave e valor, que devem estar configurados com o nome &lsquo;minio-secret&rsquo; no namespace default (onde rodamos os testes). Um bucket com nome jmeter-results também é necessario no minio.</p>
+<p>Esta chave e valor podem ser gerados dentro do minio. Em seguida encodados para base 64 e criados no cluster, através do manifesto de exemplo <a href="minioaccess.yaml">minioaccess.yaml</a></p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/miniokeys.png"></p>
+<p>Posteriormente o dockerfile estar correto, buildamos e o enviamos para o registry docker hub, pode ser ecr, ou qualquer outro registry.</p>
+<pre tabindex="0"><code>docker build -t jmeter:5.6
+docker tag &lt;imageid&gt; claudio888/kube-jmeter:5.6
+docker push claudio888/kube-jmeter:5.6
+</code></pre><p>Pode testar se a imagem esta rodando com o comando abaixo</p>
+<pre tabindex="0"><code>docker run -it jmeter:5.6 --version
+</code></pre><p>A resposta provavelmente é esta</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/jmeterversion.png"></p>
+<p>Obs: O comando do minio provavelmente vai ficar rodando, pode cancelar com um ctrl C, este é outro ponto de melhoria, o comando do minio só ser executado caso uma env var especifica seja passada para o job, ou algo que não o torne obrigatorio.</p>
+<h2 id="criando-manifestos-k8s">Criando manifestos k8s<a hidden class="anchor" aria-hidden="true" href="#criando-manifestos-k8s">#</a></h2>
+<p>Após termos a imagem construida e funcional vamos partir para os manifestos k8s que vão permitir sua execução dentro do cluster.</p>
+<p>As configurações se encontram no arquivo <a href="jmeter.yaml">jmeter.yaml</a> nela temos o seginte.</p>
+<h3 id="job"><a href="https://kubernetes.io/docs/concepts/workloads/controllers/job/">Job</a>:<a hidden class="anchor" aria-hidden="true" href="#job">#</a></h3>
+<p>Responsavel por subir o pod de execução do jmeter,</p>
+<p>Utiliza a imagem que construimos anteriormente e enviamos ao registry</p>
+<pre tabindex="0"><code>...
+- image: claudio888/kube-jmeter:5.6
+...
+</code></pre><p>Possui variaveis de ambiente referenciando o minio para posterior upload.</p>
+<p>Obs: Pode ser melhorado coletando os valores de um secret ou vindo as informações de vault, aws secret manager através de um external secrets operator por exemplo.</p>
+<pre tabindex="0"><code>...
+        env:
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: accesskey
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: secretkey
+        - name: MINIO_ADDRESS
+          value: &#34;gitlab-minio-svc.gitlab.svc:9000&#34;
+...
+</code></pre><p>Contem os argumentos para execução do teste e output de results e logs.</p>
+<pre tabindex="0"><code>...
+        args: [&#34;-n&#34;, &#34;-t&#34;, &#34;./jmxfiles/jmxconfig.jmx&#34;,&#34;-l&#34;,&#34;results.jtl&#34;, &#34;-j&#34;, &#34;jmeter.log&#34;]
+...        
+</code></pre><p>O job lê o arquivo jmx de um configmap previamente criado, do arquivo /jmx-files/<!-- raw HTML omitted --></p>
+<p>E este arquivo é montado através de um volume que injeta o seu conteudo dentro do pod(no path jmxfiles)</p>
+<pre tabindex="0"><code>...
+        volumeMounts:
+          - name: jmxconfig
+            mountPath: /opt/apache-jmeter-5.6/jmxfiles
+      volumes:
+        - name: jmxconfig
+          configMap:
+            name: jmxconfig
+...
+</code></pre><h3 id="service">Service:<a hidden class="anchor" aria-hidden="true" href="#service">#</a></h3>
+<p>O serviço que expoe a porta 9270, responsavel por disponibilizar as métricas para scraping pelo prometheus.</p>
+<h3 id="servicemonitor">ServiceMonitor:<a hidden class="anchor" aria-hidden="true" href="#servicemonitor">#</a></h3>
+<p>O recurso que expoe para o prometheus qual serviço fazer o scrape dos dados.</p>
+<p>Com o ServiceMonitor o prometheus irá enxergar o pod do jmeter e bater no endereço :9270/metrics e coletar suas métricas expostas.</p>
+<h2 id="jmx-files">Jmx files<a hidden class="anchor" aria-hidden="true" href="#jmx-files">#</a></h2>
+<p>Este arquivo é gerado pelo jmeter, então você pode instalar a ferramenta e criar um teste de seu desejo, e posteriormente salvar o arquivo de extensão .jmx no path jmx-files com um nome desejado.</p>
+<p>No <a href="https://jmeter.apache.org/usermanual/get-started.html">manual do jmeter</a> existem informações basicas para baixa-lo e executa-lo.</p>
+<p>No nosso exemplo fazemos chamadas simples para o nginx de dentro do cluster, que foi criado e deployado pelo arquivo <a href="nginx.yaml">nginx.yaml</a>.</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/jmeterhttp.png"></p>
+<p>E também configuramos o plugin do jmeter com algumas métricas.</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/jmeterpromplugin.png"></p>
+<p>O arquivo jmx é essencial pois ele quem define o que sera feito no teste, sem ele nosso teste não executa.</p>
+<h2 id="executando-manualmente-o-job">Executando manualmente o job<a hidden class="anchor" aria-hidden="true" href="#executando-manualmente-o-job">#</a></h2>
+<p>Com o que temos até o momento é possivel executar manualmente o job dentro do cluster, criando primeiramente o configmap com base em um arquivo e posteriormente chamando o arquivo jmeter.yaml, fazendo o pod ser criado e o teste de carga executado.</p>
+<p>Para criarmos o configmap, me aparentou ser mais facil usar este comando abaixo do que usar o yaml declarativo, por conta do jmx ser extenso.</p>
+<p>Assim ele cria um configmap no namespace default, com o nome jmxconfig e o campo sendo jmxconfig.jmx, seu conteudo então será baseado no arquivo do path jmx-files/<!-- raw HTML omitted --></p>
+<pre tabindex="0"><code>kubectl create configmap -n default jmxconfig --from-file=jmxconfig.jmx=jmx-files/Nginxtest.jmx
+</code></pre><p>Após criarmos o configmap, voce pode conferir se ele esta OK rodando o comando, o jmxconfig deve estar la.</p>
+<pre tabindex="0"><code>kubectl get configmaps -n default
+
+# para ver os dados
+
+kubectl describe configmap jmxconfig -n default
+</code></pre><p>Em seguida aplique o manifesto do jmeter.yaml, que irá criar o job e afins.</p>
+<pre tabindex="0"><code>kubectl apply -f jmeter.yaml
+</code></pre><p>Bom, provavelmente irá executar o job e seu cluster, podemos debugar observando se o pod foi criado, e quais são seus logs.</p>
+<pre tabindex="0"><code>
+kubectl get pods -n default
+
+kubectl logs -n default &lt;nome do pod&gt;  
+</code></pre><p>Exemplo de log inicial que o jmeter vai começar a conter.</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/podlog.png"></p>
+<p>Com isto, em seguida ele irá começar a executar os testes.</p>
+<p>Para conferirmos se as métricas estão sendo expostas, podemos fazer um port forward no pod ou service, e acessar localmente a porta 9270, assim</p>
+<pre tabindex="0"><code>kubectl get svc -n default
+
+
+kubectl port-forward services/jmeter 9270:9270 
+</code></pre><p>E em seguida acessar o endereço localhost:9270/metrics em seu navegador, devemos ter algo neste sentido.</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/metricspath.gif"></p>
+<p>Podemos também conferir no prometheus se as métricas e nosso service monitor foram encontrados e estão corretamente configurados.</p>
+<pre tabindex="0"><code>kubectl get svc -n monitoring 
+
+kubectl port-forward -n monitoring services/prometheus-k8s 9090:9090
+</code></pre><p>Acessando localhost:9090 estamos dentro do prometheus, e podemos ir até status &gt; targets e confirmar se nosso servicemonitor foi adicionado e se esta up.</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/jmetertarget.gif"></p>
+<p>Em seguida podemos procurar por alguma métrica localizada no graph</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/jmetermetricprom.gif"></p>
+<p>Tendo as métricas no prometheus, podemos agora configurar nosso dashboard no grafana pra visualização.</p>
+<p>Com o kube-prometheus-stack, o grafana ja é instalado, podemos também redirecionar a porta 3000 do grafana para nossa maquina e acessa-lo, usando então o arquivo <a href="dashbaord.json">dashboard.json</a> e importa-lo para o grafana.</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/importdash.gif"></p>
+<p>Quando o teste estiver em execução, voce saberá o nome do pod que esta executando, pegue este nome e coloque no filtro de pod no topo do dashboard, assim as métricas serão exibidas com base naquele pod, sendo unico pra cada execução, ficando como o exemplo abaixo.</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/dashrunning.gif"></p>
+<p>Com o kube-prometheus-stack, temos outros boards que ja são default, como por exemplo o chamado &ldquo;Kubernetes / Compute Resources / Pod&rdquo; que contem as métricas computacionais do pod alvo, nele podemos saber o desempenho da aplicação alvo nos testes de performance, o que também é essencial para coleta de métricas e resultados</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/alvodash.gif"></p>
+<p>Após a execução, para vermos no minio os relatorios, acessamos o serviço e vamos até o bucket jmeter-results.</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/minioresults.png"></p>
+<p>Com esta configuração ja temos a possibilidade de executar testes dentro do cluster, integrando com métricas de prometheus e dashboard do grafana, claro o nivel de depenencias não é baixo e com certeza é mais complexo do que apenas este tutorial, o gitlab, minio, são diversas configurações, porém sinta-se livre para fazer modificações para facilitar isto, ou então usar apenas o dockerfile e os manifestos k8s, removendo o minio e afins se necessario. Vamos ver agora, como fica uma simples pipeline automatizando isto que fizemos.</p>
+<h2 id="a-pipeline">A pipeline<a hidden class="anchor" aria-hidden="true" href="#a-pipeline">#</a></h2>
+<p>No cenário que tenho no homelab, é um gitlab que ja provisiona um runner dentro do cluster, com service account e afins ja configurados, para possibilidar a execução de comandos k8s deste runner.</p>
+<p>O código presente no arquivo <a href=".gitlab-ci.yml">.gitlab-ci.yml</a> simplesmente executa de forma sequencial os mesmos comandos que usamos até aqui.</p>
+<p>Ele define um stage e executa com uma imagem base a bitnami/kubectl:latest, que é outro ponto de melhoria, podemos usar uma imagem criada com apko para isto. Será menos espaço ocupado e menos vulnerabildade com certeza. Podemos fazer esta melhoria posteriormente junto ao Dockerfile principal.</p>
+<pre tabindex="0"><code>stages:
+  - executejmeter
+
+executejmeter:
+  stage: executejmeter
+  image: bitnami/kubectl:latest
+</code></pre><p>No script, limpamos o job e o configmap que existirem anteriormente, e rodamos novamente a criação do jmx configmap e em seguida aplicamos o job , service e servicemonitor.</p>
+<p>Uma varaivel no momento da execução é necessaria, ela se chama JMXNAME e indica o nome do arquivo jmx que voce deseja que execute, podemos então ter diversos jmx e o usuario apontar qual teste sera executado no momento.</p>
+<pre tabindex="0"><code>...
+  script:
+    - echo &#34;Limpando ambiente da ultima execução&#34;
+    - kubectl get configmap jmxconfig -n default &amp;&amp; kubectl delete configmap jmxconfig -n default || echo &#34;ConfigMap não encontrado&#34;
+    - kubectl delete job jmeter -n default || echo &#34;Job jmeter não encontrado&#34;
+    - echo &#34;Criando jmx especificado $JMXNAME&#34;
+    - kubectl create configmap -n default jmxconfig --from-file=jmxconfig.jmx=jmx-files/$JMXNAME
+    - kubectl get configmaps -n default
+    - echo &#34;Criando e disparando o job do jmeter&#34;
+    - kubectl apply -f jmeter.yaml
+    - kubectl get jobs -n default
+</code></pre><p>Com um job base deste, podemos incrementa-lo posteriormente para rodar junto a uma pipeline de ci/cd completa seja como smoke test após um deployment, ou algum load teste especifico.</p>
+<p>Exemplo da pipeline:</p>
+<p><img alt="alt text" loading="lazy" src="/posts/kube-jmeter/imgs/pipelinerun.png"></p>
+<p>Isto irá disparar o job e toda a cadeia de resultados que vimos anteriormente será preenchido.</p>
+<h2 id="conclusão">Conclusão<a hidden class="anchor" aria-hidden="true" href="#conclusão">#</a></h2>
+<p>Vimos um pequeno projeto para executar o jmeter dentro de um cluster k8s, apontando para uma outra aplicação que também esta dentro do cluster.</p>
+<p>Para isto usamos <a href="Dockerfile">Dockerfile</a> para construir a imagem do jmeter com prometheus exporter, e posteriormente instalamos ele no cluster usando os manifestos kubernetes presentes em <a href="jmeter.yaml">jmeter.yaml</a>, além de configurarmos o prometheus e o grafana através do <a href="dashboard.json">dashboard.json</a> para visualização das métricas do teste executado. E por fim automatizamos sua execução através de uma pipeline super simples do gitlab, que executa o job com base no nome de jmx file passado.</p>
+<h2 id="dica-e-proximos-passos">Dica e proximos passos<a hidden class="anchor" aria-hidden="true" href="#dica-e-proximos-passos">#</a></h2>
+<p>Para aprender e entender mais de testes de carga, recomendo este excelente conteudo do Matheus Fidelis <a href="https://fidelissauro.dev/load-testing/">Load Testing</a>, neste artigo é destrinchado todos tipos de testes de carga, como gerar um relatorio, quais as principais questões desta pratica e por fim algumas ferramentas que podemos utilizar para tal.</p>
+<p>Podemos continuar esta serie de artigos testando outra ferramenta, o Grafana K6 que deve se integrar melhor e mais facilmente com o grafana e compararmos qual é mais simples e executar e eficiente neste mundo de containers e cloud native.</p>
+<h2 id="referencias">Referencias<a hidden class="anchor" aria-hidden="true" href="#referencias">#</a></h2>
+<ul>
+<li><a href="https://fidelissauro.dev/load-testing/">https://fidelissauro.dev/load-testing/</a></li>
+<li><a href="https://www.timescale.com/blog/four-types-prometheus-metrics-to-collect/">https://www.timescale.com/blog/four-types-prometheus-metrics-to-collect/</a></li>
+<li><a href="https://blog.octoperf.com/jmeter-result-analysis-the-ultimate-guide/#prometheus-listener">https://blog.octoperf.com/jmeter-result-analysis-the-ultimate-guide/#prometheus-listener</a></li>
+<li><a href="https://jmeter.apache.org/usermanual/get-started.html">https://jmeter.apache.org/usermanual/get-started.html</a></li>
+<li><a href="https://github.com/justb4/docker-jmeter">https://github.com/justb4/docker-jmeter</a></li>
+<li><a href="https://github.com/johrstrom/jmeter-prometheus-plugin">https://github.com/johrstrom/jmeter-prometheus-plugin</a></li>
+<li><a href="https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f">https://gist.github.com/JustinTimperio/7c7115f87b775618637d67ac911e595f</a></li>
+<li><a href="https://gist.github.com/PhilipSchmid/1fd2688ace9f51ecaca2788a91fec133">https://gist.github.com/PhilipSchmid/1fd2688ace9f51ecaca2788a91fec133</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/k8s/">K8s</a></li>
+      <li><a href="http://localhost:1313/tags/jmeter/">Jmeter</a></li>
+      <li><a href="http://localhost:1313/tags/loadtest/">Loadtest</a></li>
+      <li><a href="http://localhost:1313/tags/qa/">QA</a></li>
+      <li><a href="http://localhost:1313/tags/tests/">Tests</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="next" href="http://localhost:1313/posts/kind-cluster/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Kind Cluster</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">Blog do Craudio</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
