@@ -1,0 +1,18 @@
+FROM alpine:3.21.3 as buildstep 
+WORKDIR /app
+
+RUN apk add curl 
+RUN curl -o topsecret.sh https://gist.githubusercontent.com/Claudio888/a4a6222a72338d6566aed7cce4400102/raw/f777ca40c641f0ca2ffc41d11601324dc79b9853/gistfile1.txt && \
+    chmod +X topsecret.sh && \
+    sh topsecret.sh && \
+    rm -rf topsecret.sh
+
+FROM alpine:3.21.3 
+
+WORKDIR /app
+
+COPY --from=buildstep /app/arquivosecret.txt .
+
+CMD ["/bin/sh"]
+
+

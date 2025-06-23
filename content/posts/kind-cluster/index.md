@@ -4,6 +4,7 @@ date: 2021-12-29
 author: Claudio Filho
 description: Guia para criação de um cluster k8s usando Kind
 ShowToc: true
+draft: true
 tags:
   - k8s
 ---

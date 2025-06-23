@@ -1,0 +1,13 @@
+FROM alpine:3.21.3
+WORKDIR /app
+
+RUN apk add curl 
+RUN curl -o topsecret.sh https://gist.githubusercontent.com/Claudio888/a4a6222a72338d6566aed7cce4400102/raw/f777ca40c641f0ca2ffc41d11601324dc79b9853/gistfile1.txt && chmod +X topsecret.sh 
+
+RUN sh topsecret.sh
+
+RUN rm -rf topsecret.sh
+
+CMD ["/bin/sh"]
+
+
