@@ -1,0 +1,8 @@
+.main {
+    max-width: calc(var(--main-width) + var(--gap) * 10);
+}
+
+body {
+    font-size: 22px;
+}
+
