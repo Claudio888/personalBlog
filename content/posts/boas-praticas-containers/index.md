@@ -4,7 +4,7 @@ date: 2025-06-19
 author: Claudio Filho
 description: Lista de boas práticas e otimizações em containers
 ShowToc: true
-draft: true
+draft: false
 tags:
   - containers
   - docker
